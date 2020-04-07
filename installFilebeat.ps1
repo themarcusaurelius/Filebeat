@@ -130,67 +130,117 @@ if($principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) 
         ForEach-Object {$_ -Replace 'elasticsearch-api-endpoint', "$($objTextBox4.Text)"} |
             Set-Content filebeat.yml
 
-    #============ Filebeat Modules Dropdown =============#
+    
+    #Sets sets the folder path for Filebeat to monitor files
+    function Read-FolderBrowserDialog([string]$Message, [string]$InitialDirectory, [switch]$NoNewFolderButton) {
+        $browseForFolderOptions = 0
+        if ($NoNewFolderButton) { $browseForFolderOptions += 512 }
 
-    Add-Type -AssemblyName System.Windows.Forms
-    Add-Type -AssemblyName System.Drawing
-
-    $form = New-Object System.Windows.Forms.Form
-    $form.Text = 'Filebeat Modules'
-    $form.Size = New-Object System.Drawing.Size(300,350)
-    $form.StartPosition = 'CenterScreen'
-
-    $okButton = New-Object System.Windows.Forms.Button
-    $okButton.Location = New-Object System.Drawing.Point(75,250)
-    $okButton.Size = New-Object System.Drawing.Size(75,23)
-    $okButton.Text = 'OK'
-    $okButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
-    $form.AcceptButton = $okButton
-    $form.Controls.Add($okButton)
-
-    $cancelButton = New-Object System.Windows.Forms.Button
-    $cancelButton.Location = New-Object System.Drawing.Point(150,250)
-    $cancelButton.Size = New-Object System.Drawing.Size(75,23)
-    $cancelButton.Text = 'Cancel'
-    $cancelButton.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
-    $form.CancelButton = $cancelButton
-    $form.Controls.Add($cancelButton)
-
-    $label = New-Object System.Windows.Forms.Label
-    $label.Location = New-Object System.Drawing.Point(10,20)
-    $label.Size = New-Object System.Drawing.Size(280,20)
-    $label.Text = 'Please select a module:'
-    $form.Controls.Add($label)
-
-    $listBox = New-Object System.Windows.Forms.ListBox
-    $listBox.Location = New-Object System.Drawing.Point(10,40)
-    $listBox.Size = New-Object System.Drawing.Size(260,20)
-    $listBox.Height = 200
-
-    [void] $listBox.Items.Add('apache2')
-    [void] $listBox.Items.Add('icinga')
-    [void] $listBox.Items.Add('iis')
-    [void] $listBox.Items.Add('kafka')
-    [void] $listBox.Items.Add('mongodb')
-    [void] $listBox.Items.Add('mysql')
-    [void] $listBox.Items.Add('nginx')
-    [void] $listBox.Items.Add('osquery')
-    [void] $listBox.Items.Add('postgresql')
-    [void] $listBox.Items.Add('redis')
-    [void] $listBox.Items.Add('traefik')
-
-    $form.Controls.Add($listBox)
-
-    $form.Topmost = $true
-
-    $result = $form.ShowDialog()
-
-    if ($result -eq [System.Windows.Forms.DialogResult]::OK)
-    {
-        $x = $listBox.SelectedItem
-        
-        .\filebeat.exe modules enable $x
+        $app = New-Object -ComObject Shell.Application
+        $folder = $app.BrowseForFolder(0, $Message, $browseForFolderOptions, $InitialDirectory)
+        if ($folder) { $selectedDirectory = $folder.Self.Path } else { $selectedDirectory = '' }
+        [System.Runtime.Interopservices.Marshal]::ReleaseComObject($app) > $null
+        return $selectedDirectory
     }
+
+    $directoryPath = Read-FolderBrowserDialog -Message "Select the folder you would like to monitor files from" -InitialDirectory 'C:\' -NoNewFolderButton
+
+    #Conditional that doesn't let 
+    if (![string]::IsNullOrEmpty($directoryPath)) { 
+        Write-Host "You selected the folder: $directoryPath" 
+        
+    }
+    else { 
+        "You did not select a directory." 
+    }
+
+    #Work around that deletes the Linux -var/path
+    $data = foreach($line in Get-Content filebeat.yml)
+    {
+        if($line -like '*/var/log/*.log*')
+        {
+
+        }
+        else {
+            $line
+        }
+    }
+
+    $data | Set-content filebeat.yml -Force
+
+    # Opens Up YML and sets path to files that were declared by user
+    $lineNumber = 7
+    $fileContent = Get-Content filebeat.yml
+    $fileContent[$lineNumber-1] += "    - $($directoryPath)\*"
+    $fileContent | Set-Content filebeat.yml
+
+
+    #Enables the filebeat input
+    (Get-Content filebeat.yml) |       
+        ForEach-Object {$_ -Replace "false", "true" } |
+            Set-Content filebeat.yml
+
+    # #============ Filebeat Modules Dropdown =============#
+
+    # Add-Type -AssemblyName System.Windows.Forms
+    # Add-Type -AssemblyName System.Drawing
+
+    # $form = New-Object System.Windows.Forms.Form
+    # $form.Text = 'Filebeat Modules'
+    # $form.Size = New-Object System.Drawing.Size(300,350)
+    # $form.StartPosition = 'CenterScreen'
+
+    # $okButton = New-Object System.Windows.Forms.Button
+    # $okButton.Location = New-Object System.Drawing.Point(75,250)
+    # $okButton.Size = New-Object System.Drawing.Size(75,23)
+    # $okButton.Text = 'OK'
+    # $okButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
+    # $form.AcceptButton = $okButton
+    # $form.Controls.Add($okButton)
+
+    # $cancelButton = New-Object System.Windows.Forms.Button
+    # $cancelButton.Location = New-Object System.Drawing.Point(150,250)
+    # $cancelButton.Size = New-Object System.Drawing.Size(75,23)
+    # $cancelButton.Text = 'Cancel'
+    # $cancelButton.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+    # $form.CancelButton = $cancelButton
+    # $form.Controls.Add($cancelButton)
+
+    # $label = New-Object System.Windows.Forms.Label
+    # $label.Location = New-Object System.Drawing.Point(10,20)
+    # $label.Size = New-Object System.Drawing.Size(280,20)
+    # $label.Text = 'Please select a module:'
+    # $form.Controls.Add($label)
+
+    # $listBox = New-Object System.Windows.Forms.ListBox
+    # $listBox.Location = New-Object System.Drawing.Point(10,40)
+    # $listBox.Size = New-Object System.Drawing.Size(260,20)
+    # $listBox.Height = 200
+
+    # [void] $listBox.Items.Add('apache2')
+    # [void] $listBox.Items.Add('icinga')
+    # [void] $listBox.Items.Add('iis')
+    # [void] $listBox.Items.Add('kafka')
+    # [void] $listBox.Items.Add('mongodb')
+    # [void] $listBox.Items.Add('mysql')
+    # [void] $listBox.Items.Add('nginx')
+    # [void] $listBox.Items.Add('osquery')
+    # [void] $listBox.Items.Add('postgresql')
+    # [void] $listBox.Items.Add('redis')
+    # [void] $listBox.Items.Add('traefik')
+
+    # $form.Controls.Add($listBox)
+
+    # $form.Topmost = $true
+
+    # $result = $form.ShowDialog()
+
+    # if ($result -eq [System.Windows.Forms.DialogResult]::OK)
+    # {
+    #     $x = $listBox.SelectedItem
+        
+    #     .\filebeat.exe modules enable $x
+    # }
 
     #Runs the config test to make sure all data has been inputted correctly
     .\filebeat.exe -e -configtest
