@@ -37,7 +37,7 @@ This will install and run filebeat.
 
 **Data should now be shipping to your Vizion Elastic app. Check the ```Discover``` tab in Kibana for the incoming logs**
 
-<i>If you would like to parse the logs in order to create visuals in Kibana, you will need to build a pipeline to parse the data or use one of the pre-built modules available for that certain log type</i>
+<i>If you would like to parse the logs in order to create visuals in Kibana, you will need to build an ingest pipeline or use one of the pre-built modules available for that certain log type</i>
 
 <hr>
 
