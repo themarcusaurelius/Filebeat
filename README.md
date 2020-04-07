@@ -13,3 +13,20 @@ Installed as an agent on your servers, Filebeat monitors the log files or locati
 ```
 Start-BitsTransfer -Source 'https://github.com/themarcusaurelius/Filebeat/archive/master.zip' -Destination 'C:\Users\Administrator\Downloads\filebeat.zip'
 ```
+
+2) Unzip the package and extract the contents to the `C:/` drive.
+
+3) Back in Powershell, CD into the extracted folder and run the following script:
+
+```
+.\installFilebeat.ps1
+```
+
+4) When prompted, enter your credentials below and click OK.
+
+```css
+Kibana URL: _PLACEHOLDER_KIBANA_URL_
+Username: _PLACEHOLDER_USERNAME_
+Password: _PLACEHOLDER_PASSWORD_
+Elasticsearch API Endpoint: _PLACEHOLDER_API_ENDPOINT_
+```
