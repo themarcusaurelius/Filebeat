@@ -169,7 +169,7 @@ if($principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) 
     $data | Set-content filebeat.yml -Force
 
     # Opens Up YML and sets path to files that were declared by user
-    $lineNumber = 7
+    $lineNumber = 8
     $fileContent = Get-Content filebeat.yml
     $fileContent[$lineNumber-1] += "    - $($directoryPath)\*"
     $fileContent | Set-Content filebeat.yml
