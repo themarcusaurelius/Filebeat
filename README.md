@@ -4,8 +4,6 @@ Installed as an agent on your servers, Filebeat monitors the log files or locati
 
 ## Installation:
 
-#### <b>Option 1.</b> Automated Installation.
-
 ### Windows:
 
 1) As administrator, enter the following command in Powershell or download the zip file [here](https://github.com/themarcusaurelius/Filebeat/archive/master.zip).
